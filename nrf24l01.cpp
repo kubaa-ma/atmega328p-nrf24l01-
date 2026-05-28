@@ -54,7 +54,7 @@ uint8_t RF24::read_register(uint8_t reg) {
 
 RF24::RF24(uint32_t _spi_speed)
     : spi_speed(_spi_speed),
-      payload_size(32),
+      payload_size(20),
       _is_p_variant(false),
       _is_p0_rx(false),
       ack_payloads_enabled(false),
@@ -183,7 +183,7 @@ bool RF24::write(const void* buf, uint8_t len) {
     writeFast(buf, len);
     
     PORTB |= (1 << CE);
-    _delay_us(15);
+    _delay_us(20);
     PORTB &= ~(1 << CE);
     
     return txStandBy();
@@ -216,19 +216,24 @@ void RF24::openWritingPipe(const uint8_t* address) {
 
 
 void RF24::openReadingPipe(uint8_t child, const uint8_t* address) {
+
     if (child == 0) {
         memcpy(pipe0_reading_address, address, addr_width);
         _is_p0_rx = true;
     }
 
     if (child <= 5) {
+
         uint8_t pipe_reg = RX_ADDR_P0 + child;
-        
+
         if (child > 1) {
             write_register(pipe_reg, address, 1);
         } else {
             write_register(pipe_reg, address, addr_width);
         }
+
+        write_register(RX_PW_P0 + child, payload_size);
+
         write_register(EN_RXADDR, read_register(EN_RXADDR) | (1 << child));
     }
 }
@@ -248,18 +253,25 @@ void RF24::powerUp(void) {
 }
 
 bool RF24::txStandBy() {
+
     while (!(read_register(FIFO_STATUS) & (1 << TX_EMPTY))) {
-        if (status & RF24_MAX_RT) {
+
+        uint8_t current_status = read_register(STATUS);
+
+        if (current_status & RF24_MAX_RT) {
+
             write_register(STATUS, RF24_MAX_RT);
+
             beginTransaction();
             Transfer_spi(FLUSH_TX);
             endTransaction();
+
             return false;
         }
     }
+
     return true;
 }
-
 bool RF24::rxFifoFull() {
     return (read_register(FIFO_STATUS) & (1 << nRF24L01::FIFO_FULL)) != 0;
 }
