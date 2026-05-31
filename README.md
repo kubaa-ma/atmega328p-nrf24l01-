@@ -2,6 +2,9 @@
 
 This repo is a small, low-level C++ port of the nRF24/RF24 library for ATmega328P microcontroller. It works standalone in pure AVR C++, without Arduino IDE or framework.
 
+
+<img width="1607" height="1039" alt="Nrf24l01_ATmega328P" src="https://github.com/user-attachments/assets/3987d961-bea1-4d4d-a953-8c3351c4feec" />
+
 ## Purpose
 - This repository was created only for my personal use and learning purpose.
 - It has only the main methods needed for a stable wireless connection with Auto-ACK protocol. 
